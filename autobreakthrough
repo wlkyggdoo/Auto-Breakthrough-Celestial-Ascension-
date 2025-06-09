@@ -1,0 +1,128 @@
+--// Services
+local player = game:GetService("Players").LocalPlayer
+local rs = game:GetService("ReplicatedStorage")
+local tweenService = game:GetService("TweenService")
+
+--// GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.Name = "BreakThroughGUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+--// Main Frame (smaller: ~1/3 of previous size)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 120, 0, 80)
+frame.Position = UDim2.new(0.5, -60, 0.45, 0)
+frame.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+frame.BorderSizePixel = 0
+frame.Parent = gui
+frame.Draggable = true
+frame.Active = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+-- Frame glow
+local frameStroke = Instance.new("UIStroke", frame)
+frameStroke.Color = Color3.fromRGB(0, 255, 255)
+frameStroke.Thickness = 1.5
+frameStroke.Transparency = 0.3
+
+--// Owner Label (cyan)
+local ownerLabel = Instance.new("TextLabel")
+ownerLabel.Size = UDim2.new(1, 0, 0, 12)
+ownerLabel.Position = UDim2.new(0, 0, 0, -14)
+ownerLabel.BackgroundTransparency = 1
+ownerLabel.RichText = true
+ownerLabel.Text = '<font color="rgb(0,255,255)">Owner: wl.kyggdoo</font> (discord)'
+ownerLabel.Font = Enum.Font.GothamSemibold
+ownerLabel.TextScaled = true
+ownerLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
+ownerLabel.Parent = frame
+
+local ownerStroke = Instance.new("UIStroke", ownerLabel)
+ownerStroke.Color = Color3.fromRGB(0, 255, 255)
+ownerStroke.Thickness = 1
+ownerStroke.Transparency = 0.5
+
+--// Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 18)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "🔥 BreakThrough 🔥"
+title.Font = Enum.Font.GothamBlack
+title.TextColor3 = Color3.fromRGB(0, 255, 255)
+title.TextScaled = true
+title.Parent = frame
+
+--// Delay Input
+local delayInput = Instance.new("Delay")
+delayInput.Size = UDim2.new(0.85, 0, 0, 18)
+delayInput.Position = UDim2.new(0.075, 0, 0.4, 0)
+delayInput.PlaceholderText = "Delay"
+delayInput.Font = Enum.Font.GothamBold
+delayInput.TextColor3 = Color3.new(1, 1, 1)
+delayInput.BackgroundColor3 = Color3.fromRGB(30, 60, 70)
+delayInput.TextScaled = true
+delayInput.Parent = frame
+Instance.new("UICorner", delayInput).CornerRadius = UDim.new(0, 6)
+
+--// Toggle Button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0.85, 0, 0, 20)
+toggleButton.Position = UDim2.new(0.075, 0, 0.7, 0)
+toggleButton.Text = "💥 Start"
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 110, 120)
+toggleButton.TextScaled = true
+toggleButton.Parent = frame
+Instance.new("UICorner", toggleButton).CornerRadius = UDim.new(0, 6)
+
+local btnStroke = Instance.new("UIStroke", toggleButton)
+btnStroke.Color = Color3.fromRGB(0, 255, 255)
+btnStroke.Thickness = 1
+btnStroke.Transparency = 0.4
+
+-- Hover effect
+local normalColor = toggleButton.BackgroundColor3
+local hoverColor = Color3.fromRGB(0, 160, 170)
+
+toggleButton.MouseEnter:Connect(function()
+	tweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = hoverColor}):Play()
+end)
+
+toggleButton.MouseLeave:Connect(function()
+	tweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = normalColor}):Play()
+end)
+
+--// Fire Loop Toggle
+local firing = false
+
+local function fireBreakthrough()
+	local remote = rs:WaitForChild("RS"):WaitForChild("Remotes"):WaitForChild("BreakThrough")
+	remote:FireServer("SECRETKEY9545")
+end
+
+toggleButton.MouseButton1Click:Connect(function()
+	local delayTime = tonumber(delayInput.Text)
+	if not delayTime or delayTime < 0 then
+		delayInput.Text = ""
+		delayInput.PlaceholderText = "Delay must be 0+"
+		return
+	end
+
+	firing = not firing
+	if firing then
+		toggleButton.Text = "Stop"
+		toggleButton.BackgroundColor3 = Color3.fromRGB(0, 180, 180)
+		coroutine.wrap(function()
+			while firing do
+				fireBreakthrough()
+				wait(delayTime)
+			end
+		end)()
+	else
+		toggleButton.Text = "💥 Start"
+		toggleButton.BackgroundColor3 = normalColor
+	end
+end)
